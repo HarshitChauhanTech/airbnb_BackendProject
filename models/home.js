@@ -1,5 +1,9 @@
+const fs = require('fs')
+const path = require('path')
+const rootDir = require('../utils/pathUtil')
+
+
 // fake database
-const registeredHomes = [];
 
 
 module.exports = class Home{
@@ -13,11 +17,20 @@ module.exports = class Home{
 
 
 save(){
-    registeredHomes.push(this);
+   Home.fetchAll(registeredHomes =>{
+        registeredHomes.push(this);
+    const homeDataPath = path.join(rootDir, 'data','homes.json');
+    fs.writeFile(homeDataPath, JSON.stringify(registeredHomes),error=>{
+        console.log("File Writing Concluded", error);
+    })
+    })
 }
 
-static fetchAll(){
-    return registeredHomes;
+static fetchAll(callback){
+    const homeDataPath = path.join(rootDir, 'data','homes.json');
+    fs.readFile(homeDataPath, (err, data)=>{
+        callback(!err ? JSON.parse(data) : [])
+    }) 
 }
 
 }
