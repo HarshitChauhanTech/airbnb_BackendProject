@@ -3,9 +3,23 @@
     <ul class="flex space-x-4">
       <li>
         <a
+          
+          class="<%= currentPage === 'addHome' ? 'bg-red-400' : 'hover:bg-red-400' %> py-2 px-4 rounded transition duration-300"
+          >airbnb</a
+        >
+      </li>
+      <li>
+        <a
           href="/"
           class="<%= currentPage === 'Home' ? 'bg-red-400' : 'hover:bg-red-400' %> py-2 px-4 rounded transition duration-300"
-          >Home</a
+          >Home-List</a
+        >
+      </li>
+      <li>
+        <a
+          href="/favorites"
+          class="<%= currentPage === 'favorites' ? 'bg-red-400' : 'hover:bg-red-400' %> py-2 px-4 rounded transition duration-300"
+          >favourits</a
         >
       </li>
       <li>
@@ -13,6 +27,13 @@
           href="/bookings"
           class="<%= currentPage === 'addHome' ? 'bg-red-400' : 'hover:bg-red-400' %> py-2 px-4 rounded transition duration-300"
           >bookings</a
+        >
+      </li>
+      <li>
+        <a
+          href="/host/host-home-list"
+          class="<%= currentPage === 'host-Homes' ? 'bg-red-400' : 'hover:bg-red-400' %> py-2 px-4 rounded transition duration-300"
+          >Host Home</a
         >
       </li>
       <li>
