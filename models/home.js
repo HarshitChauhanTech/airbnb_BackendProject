@@ -2,7 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const rootDir = require('../utils/pathUtil')
 const homeDataPath = path.join(rootDir, 'data','homes.json');
-  
+const Favourite = require("./favourite");
+
 
 
 // fake database
@@ -18,15 +19,28 @@ module.exports = class Home{
     }
 
 
-save(){
-    this.id = Math.random().toString();
-   Home.fetchAll(registeredHomes =>{
-        registeredHomes.push(this);
-    fs.writeFile(homeDataPath, JSON.stringify(registeredHomes),error=>{
-        console.log("File Writing Concluded", error);
-    })
-    })
-}
+    save() {
+        Home.fetchAll(registeredHomes => {
+          if (this.id) {
+            // Update existing home
+            registeredHomes = registeredHomes.map(home => {
+              if (home.id === this.id) {
+                return this; // Replace with updated home object
+              }
+              return home;
+            });
+          } else {
+            // Create new home
+            this.id = Math.random().toString();
+            registeredHomes.push(this);
+          }
+      
+          fs.writeFile(homeDataPath, JSON.stringify(registeredHomes), error => {
+            console.log("File Writing Concluded", error);
+          });
+        });
+      }
+      
 
 static fetchAll(callback){
     const homeDataPath = path.join(rootDir, 'data','homes.json');
@@ -42,6 +56,15 @@ static findById(homeId, callback){
         callback(homeFound)
     })
     
+}
+
+static deleteById(homeId, callback) {
+  this.fetchAll(homes => {
+    homes = homes.filter(home => home.id !== homeId);
+    fs.writeFile(homeDataPath, JSON.stringify(homes), error => {
+      Favourite.deleteById(homeId, callback);
+    });
+  })
 }
 
 }
