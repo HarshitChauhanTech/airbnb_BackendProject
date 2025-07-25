@@ -1,89 +1,88 @@
-const Home = require('../models/home');
-const Favourite = require('../models/favourite') 
+const Home = require("../models/home");
+const User = require("../models/user");
 
-
-
-
-exports.getHomes =  (req, res, next) => {
-  const registeredHomes = Home.fetchAll((registeredHomes)=>{
-  res.render('store/home-list', {registeredHomes: registeredHomes, pageTitle: 'airbnb Home', currentPage: 'Home'});
-})
-}
-
-
-exports.getIndex =  (req, res, next) => {
-  const registeredHomes = Home.fetchAll((registeredHomes)=>{
-    res.render('store/index', {registeredHomes: registeredHomes, pageTitle: 'airbnb Home', currentPage: 'Index'});
-  })
-}
-
-
-exports.postaddToFavourite = (req,res,next)=>{
-  console.log("came to add to favorite",req.body);
-  res.redirect('/favourites')
-}
-
-
-
-
-exports.getBookings =   (req, res, next) => {
-  res.render('store/bookings', {pageTitle: 'My Bookings', currentPage: 'bookings'});
-
-}
-
-
-
-exports.getFavouriteList = (req, res, next) => {
-  Favourite.getFavourites(favourites => {
-    Home.fetchAll((registeredHomes) => {
-      const favouriteHomes = registeredHomes.filter(home => favourites.includes(home.id));
-      res.render("store/favourite-list", {
-        favouriteHomes: favouriteHomes,
-        pageTitle: "My Favourites",
-        currentPage: "favourites",
-      })
+exports.getIndex = (req, res, next) => {
+  console.log("Session Value: ", req.session);
+  Home.find().then((registeredHomes) => {
+    res.render("store/index", {
+      registeredHomes: registeredHomes,
+      pageTitle: "airbnb Home",
+      currentPage: "index",
+      isLoggedIn: req.isLoggedIn, 
+      user: req.session.user,
     });
-  })
-
+  });
 };
 
+exports.getHomes = (req, res, next) => {
+  Home.find().then((registeredHomes) => {
+    res.render("store/home-list", {
+      registeredHomes: registeredHomes,
+      pageTitle: "Homes List",
+      currentPage: "Home",
+      isLoggedIn: req.isLoggedIn, 
+      user: req.session.user,
+    });
+  });
+};
 
+exports.getBookings = (req, res, next) => {
+  res.render("store/bookings", {
+    pageTitle: "My Bookings",
+    currentPage: "bookings",
+    isLoggedIn: req.isLoggedIn, 
+    user: req.session.user,
+  });
+};
 
-exports.postaddToFavourite = (req, res, next)=>{
-  console.log("Came to add to Favourite", req.body)
-  Favourite.addToFavourite(req.body.id, error=>{
-    if(error){
-      console.log("Error while marking favourite");
-    } 
-    res.redirect("/favourites")
-  })
-}
+exports.getFavouriteList = async (req, res, next) => {
+  const userId = req.session.user._id;
+  const user = await User.findById(userId).populate('favourites');
+  res.render("store/favourite-list", {
+    favouriteHomes: user.favourites,
+    pageTitle: "My Favourites",
+    currentPage: "favourites",
+    isLoggedIn: req.isLoggedIn, 
+    user: req.session.user,
+  });
+};
 
-exports.postRemoveFromFavourite = (req, res, next) => {
+exports.postAddToFavourite = async (req, res, next) => {
+  const homeId = req.body.id;
+  const userId = req.session.user._id;
+  const user = await User.findById(userId);
+  if (!user.favourites.includes(homeId)) {
+    user.favourites.push(homeId);
+    await user.save();
+  }
+  res.redirect("/favourites");
+};
+
+exports.postRemoveFromFavourite = async (req, res, next) => {
   const homeId = req.params.homeId;
-  Favourite.deleteById(homeId, error => {
-    if (error) {
-      console.log('Error while removing from Favourite', error);
-    }
-    res.redirect("/favourites");
-  })
-}
+  const userId = req.session.user._id;
+  const user = await User.findById(userId);
+  if (user.favourites.includes(homeId)) {
+    user.favourites = user.favourites.filter(fav => fav != homeId);
+    await user.save();
+  }
+  res.redirect("/favourites");
+};
 
-
-
-
-exports.getHomesDetails =  (req, res, next) => {
+exports.getHomeDetails = (req, res, next) => {
   const homeId = req.params.homeId;
-  Home.findById(homeId,home =>{
-    if(!home){
-      console.log("home not found")
+  Home.findById(homeId).then((home) => {
+    if (!home) {
+      console.log("Home not found");
       res.redirect("/homes");
-    }else{
-      console.log("Home Details Found",home);
-      res.render('store/home-detail', { home:home, pageTitle: 'Home-Detail', currentPage: 'Home'});
-  
+    } else {
+      res.render("store/home-detail", {
+        home: home,
+        pageTitle: "Home Detail",
+        currentPage: "Home",
+        isLoggedIn: req.isLoggedIn, 
+        user: req.session.user,
+      });
     }
-
-
-  })
-}
+  });
+};
